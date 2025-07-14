@@ -21,9 +21,7 @@ export class Game extends Scene {
   create() {
     this.camera = this.cameras.main;
     this.onResize();
-    this.scale.on("resize", () => {
-      this.onResize();
-    });
+    this.scale.on("resize", this.onResize, this);
   }
   private updateComputedValues() {
     this.topRowContainerHeight = this.scale.height * 0.1;
