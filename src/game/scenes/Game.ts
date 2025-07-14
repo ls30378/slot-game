@@ -1,35 +1,97 @@
-import { Scene } from 'phaser';
+import { Scene } from "phaser";
+import { FooterContainer, MainContainer, TopRowContainer } from "../components";
+interface Resizable {
+  onResize: (width: number, height: number) => void;
+}
+export class Game extends Scene {
+  camera: Phaser.Cameras.Scene2D.Camera;
 
-export class Game extends Scene
-{
-    camera: Phaser.Cameras.Scene2D.Camera;
-    background: Phaser.GameObjects.Image;
-    msg_text : Phaser.GameObjects.Text;
+  // childrens
+  private topRowContainer: TopRowContainer;
+  private mainContainer: MainContainer;
 
-    constructor ()
-    {
-        super('Game');
+  // Computed values
+  private topRowContainerHeight: number;
+  private mainContainerHeight: number;
+  private footerContainerHeight: number;
+  footerContainer: FooterContainer;
+
+  constructor() {
+    super("Game");
+  }
+
+  create() {
+    this.camera = this.cameras.main;
+    this.onResize();
+    this.scale.on("resize", () => {
+      this.onResize();
+    });
+  }
+  private updateComputedValues() {
+    this.topRowContainerHeight = this.scale.height * 0.1;
+    this.mainContainerHeight = this.scale.height * 0.8;
+    this.footerContainerHeight = this.scale.height * 0.1;
+  }
+  private onResize() {
+    this.updateComputedValues();
+    this.setupLayout();
+  }
+  private setupLayout() {
+    this.setupTopRowContainer();
+    this.setupMainContainer();
+    this.setupFooterContainer();
+  }
+  private setupTopRowContainer() {
+    if (!this.topRowContainer) {
+      this.topRowContainer = new TopRowContainer(
+        this,
+        0,
+        0,
+        this.scale.width,
+        this.topRowContainerHeight,
+      );
+      this.add.existing(this.topRowContainer);
+    } else {
+      this.topRowContainer.onResize(
+        this.scale.width,
+        this.topRowContainerHeight,
+      );
     }
-
-    create ()
-    {
-        this.camera = this.cameras.main;
-        this.camera.setBackgroundColor(0x00ff00);
-
-        this.background = this.add.image(512, 384, 'background');
-        this.background.setAlpha(0.5);
-
-        this.msg_text = this.add.text(512, 384, 'Make something fun!\nand share it with us:\nsupport@phaser.io', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        });
-        this.msg_text.setOrigin(0.5);
-
-        this.input.once('pointerdown', () => {
-
-            this.scene.start('GameOver');
-
-        });
+  }
+  private setupMainContainer() {
+    if (!this.mainContainer) {
+      this.mainContainer = new MainContainer(
+        this,
+        0,
+        this.topRowContainerHeight,
+        this.scale.width,
+        this.mainContainerHeight,
+      );
+      this.add.existing(this.mainContainer);
+    } else {
+      this.mainContainer.setPosition(0, this.topRowContainerHeight);
+      this.mainContainer.onResize(this.scale.width, this.mainContainerHeight);
     }
+  }
+
+  private setupFooterContainer() {
+    const footerYPosition =
+      this.topRowContainerHeight + this.mainContainerHeight;
+    if (!this.footerContainer) {
+      this.footerContainer = new FooterContainer(
+        this,
+        0,
+        footerYPosition,
+        this.scale.width,
+        this.footerContainerHeight,
+      );
+      this.add.existing(this.footerContainer);
+    } else {
+      this.footerContainer.setPosition(0, footerYPosition);
+      this.footerContainer.onResize(
+        this.scale.width,
+        this.footerContainerHeight,
+      );
+    }
+  }
 }
