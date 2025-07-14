@@ -1,20 +1,18 @@
 import { Scene } from "phaser";
 import { FooterContainer, MainContainer, TopRowContainer } from "../components";
-interface Resizable {
-  onResize: (width: number, height: number) => void;
-}
+
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
 
   // childrens
   private topRowContainer: TopRowContainer;
   private mainContainer: MainContainer;
+  private footerContainer: FooterContainer;
 
   // Computed values
   private topRowContainerHeight: number;
   private mainContainerHeight: number;
   private footerContainerHeight: number;
-  footerContainer: FooterContainer;
 
   constructor() {
     super("Game");

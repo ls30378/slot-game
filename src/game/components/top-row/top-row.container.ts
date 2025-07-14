@@ -12,12 +12,19 @@ export class TopRowContainer extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.setSize(width, height);
     this.updateComputedValues();
-    this.title = new Phaser.GameObjects.Text(scene, 0, 0, "Good Luck", {
-      fontFamily: "Arial Black",
-      fontSize: this.titleFontSize,
-      fontStyle: "600",
-      color: "#ffffff",
-    });
+    this.title = new Phaser.GameObjects.Text(
+      scene,
+      width / 2,
+      height / 2,
+      "Good Luck",
+      {
+        fontFamily: "Arial Black",
+        fontSize: this.titleFontSize,
+        fontStyle: "600",
+        color: "#ffffff",
+      },
+    ).setOrigin(0.5);
+
     this.debugRect = scene.add.rectangle(0, 0, width, height, 0xff69b4, 0.4);
     this.debugRect.setOrigin(0, 0);
     this.add([this.title, this.debugRect]);
@@ -27,6 +34,7 @@ export class TopRowContainer extends Phaser.GameObjects.Container {
     this.setSize(width, height);
     this.updateComputedValues();
     this.title.setFontSize(this.titleFontSize);
+    this.title.setPosition(width / 2, height / 2);
     this.debugRect.setSize(width, height);
     this.debugRect.setPosition(0, 0);
   }
