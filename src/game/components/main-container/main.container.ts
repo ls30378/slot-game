@@ -35,10 +35,11 @@ export class MainContainer extends Phaser.GameObjects.Container {
         0,
         this.width * 0.8,
         this.height,
+        this.y,
       );
       this.add(this.reelsContainer);
     } else {
-      this.reelsContainer.onResize(this.width * 0.8, this.height);
+      this.reelsContainer.onResize(this.width * 0.8, this.height, this.y);
     }
   }
   private setupFeaturesContainer() {

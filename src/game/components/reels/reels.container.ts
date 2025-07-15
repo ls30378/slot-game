@@ -34,14 +34,17 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     [3, 0, 1],
   ];
   resultSprites = new Map<string, SymbolContainer>();
+  globalY: number;
   constructor(
     scene: Phaser.Scene,
     x: number,
     y: number,
     width: number,
     height: number,
+    globalY: number = 0,
   ) {
     super(scene, x, y);
+    this.globalY = globalY;
     this.setSize(width, height);
     this.debugRect = scene.add.rectangle(0, 0, width, height, 0x1234ff, 0.4);
     this.debugRect.setOrigin(0, 0);
@@ -49,10 +52,11 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     this.updateComputedValues();
     this.createColumns();
     EventBus.on(EventConstants.spinButtonClick, () => this.startSpin());
-    this.onResize(width, height);
+    this.onResize(width, height, globalY);
     console.log("Parent container:", this.parentContainer);
   }
-  onResize(width: number, height: number) {
+  onResize(width: number, height: number, globalY: number) {
+    this.globalY = globalY;
     this.setSize(width, height);
     this.debugRect.setSize(width, height);
     this.debugRect.setPosition(0, 0);
@@ -85,9 +89,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
 
     maskGraphics.fillRect(0, 0, this.width, this.height);
 
-    const { x, y } = this.getContainerGlobalPosition();
-    maskGraphics.setPosition(x, y);
-    console.log("Global Position for Mask:", x, y);
+    maskGraphics.setPosition(0, this.globalY);
     const geometryMask = maskGraphics.createGeometryMask();
 
     this.columnContainers.forEach((columnContainer) => {
