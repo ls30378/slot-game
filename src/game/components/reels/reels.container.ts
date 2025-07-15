@@ -13,6 +13,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
 
   private columnContainers: Phaser.GameObjects.Container[] = [];
   private symbolContainers: SymbolContainer[][] = []; // Store symbols for each column
+  private symbolTypes: ReelSymbol[][] = []; // Store base symbol types for each column
 
   private maskGraphicsList: Phaser.GameObjects.Graphics[] = [];
   private geometryMasks: Phaser.Display.Masks.GeometryMask[] = [];
@@ -58,6 +59,12 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     this.updateColumnPositions();
     this.updateComputedValues();
   }
+
+  private resetNewRound() {
+    this.activeTweens = [];
+    this.resultSprites.clear();
+  }
+
   private createColumns() {
     let startX = this.width / 5;
     for (let i = 0; i < this._numColumns; i++) {
@@ -148,6 +155,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     });
 
     this.symbolContainers[columnIndex] = columnSymbols;
+    this.symbolTypes[columnIndex] = symbolsForColumn;
   }
   private updateComputedValues() {
     this.symbolHeight = this.height / 3;
@@ -162,13 +170,25 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     });
   }
 
+  private resetSymbolsForSpin(columnIndex: number) {
+    const symbols = this.symbolContainers[columnIndex];
+    for (let i = 0; i < symbols.length; i++) {
+      const symbol = symbols[i];
+      symbol.updateText(BOOK_OF_RA_SYMBOLS[this.symbolTypes[columnIndex][i]]);
+      symbol.y = -i * this.symbolHeight + this.symbolHeight * 2;
+      symbol.setVisible(true);
+    }
+  }
+
   startSpin() {
     if (this.isSpinning) return;
     console.log("Spinning reels...");
+    this.resetNewRound();
     let spinningSymbolsCount = 0;
     this.isSpinning = true;
     console.log(this.symbolContainers);
     this.symbolContainers.forEach((columnSymbols, columnIndex) => {
+      this.resetSymbolsForSpin(columnIndex);
       const duration = this._baseDuration + columnIndex * this._delayPerReel;
 
       const symbols = this.symbolContainers[columnIndex];
@@ -185,40 +205,19 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
           ease: "Power3.easeIn",
           duration,
           onComplete: () => {
-            console.log(
-              `Symbol ${symbolIndex} in column ${columnIndex} completed spinning.`,
-            );
-            // if (symbolIndex === 0) this.handleReelSpinComplete(columnIndex);
             symbol.setVisible(false);
             this.setFinalSymbols(columnIndex);
             spinningSymbolsCount--;
-            //
-            // const symbolBounceTweens = this.applyBounceTween(symbols);
-            // activeBounceTweens += symbolBounceTweens.length;
-            //
-            // symbolBounceTweens.forEach(bounceTween => {
-            //   bounceTween.setCallback('onComplete', () => {
-            //     activeBounceTweens--;
-            //     if (spinningSymbolsCount === 0 && activeBounceTweens === 0) {
-            //       this.handleSpinComplete();
-            //     }
-            //   });
-            // });
+            if (spinningSymbolsCount === 0) {
+              this.isSpinning = false;
+            }
           },
         });
 
         this.activeTweens.push(tween);
-        console.log(
-          "Added tween for symbol:",
-          symbolIndex,
-          "in column:",
-          columnIndex,
-          this.activeTweens,
-        );
       });
     });
   }
-
   private setFinalSymbols(columnIndex: number): void {
     const symbols = this.symbolContainers[columnIndex];
     const winningSymbols = this.reels[columnIndex] || [];
