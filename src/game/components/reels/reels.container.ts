@@ -141,6 +141,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
 
     symbolsForColumn.forEach((symbol, i) => {
       const symbolY = -i * this.symbolHeight + this.symbolHeight * 2;
+
       const symbolContainer = new SymbolContainer(
         this.scene,
         0,
@@ -195,7 +196,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
       const totalSymbols = symbols.length;
 
       const totalDistance = this.symbolHeight * (totalSymbols - 3);
-      columnSymbols.forEach((symbol, symbolIndex) => {
+      columnSymbols.forEach((symbol) => {
         if (!(symbol instanceof SymbolContainer)) return;
         spinningSymbolsCount++;
 
@@ -218,16 +219,17 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
       });
     });
   }
+
   private setFinalSymbols(columnIndex: number): void {
     const symbols = this.symbolContainers[columnIndex];
-    const winningSymbols = this.reels[columnIndex] || [];
+    const winningSymbols = this.reels[columnIndex].slice().reverse() || [];
 
     // Position and update the first 3 winning symbols (the visible ones)
     for (let i = 0; i < winningSymbols?.length; i++) {
       try {
         const symbol = symbols[i];
 
-        symbol.y = i * this.symbolHeight;
+        symbol.y = -i * this.symbolHeight + this.symbolHeight * 2;
         symbol.updateText(BOOK_OF_RA_SYMBOLS[winningSymbols[i]]);
         symbol.setVisible(true);
 
