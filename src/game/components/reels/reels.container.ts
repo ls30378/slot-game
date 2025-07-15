@@ -1,10 +1,12 @@
 import { GameActions } from "../../../lib/game-actions";
-import { SymbolContainer } from "../symbol/symbol.container";
+import { SymbolContainer } from "../";
 
 export class ReelsContainer extends Phaser.GameObjects.Container {
   private debugRect: Phaser.GameObjects.Rectangle;
   private _numColumns = 5;
+
   private columnContainers: Phaser.GameObjects.Container[] = [];
+  private symbolContainers: SymbolContainer[][] = []; // Store symbols for each column
 
   private maskGraphicsList: Phaser.GameObjects.Graphics[] = [];
   private geometryMasks: Phaser.Display.Masks.GeometryMask[] = [];
@@ -94,7 +96,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
 
     this.columnContainers.forEach((columnContainer, i) => {
       columnContainer.setPosition(startX * i, 0);
-      // this.updateSymbolScaling(i);
+      this.updateSymbolScaling(i);
     });
 
     this.updateMaskPositions();
@@ -105,9 +107,35 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
   ) {
     const symbolsForColumn = GameActions.randomReelStrip();
     const columnSymbols: SymbolContainer[] = [];
-    console.log(symbolsForColumn);
+
+    symbolsForColumn.forEach((symbol, i) => {
+      const symbolY = i * this.symbolHeight;
+      console.log(symbolY);
+      const symbolContainer = new SymbolContainer(
+        this.scene,
+        0,
+        symbolY,
+        this.width / this._numColumns,
+        this.symbolHeight,
+        symbol,
+      );
+      columnContainer.add(symbolContainer).setDepth(2);
+      columnContainer.sendToBack(symbolContainer);
+      columnSymbols.push(symbolContainer);
+    });
+
+    this.symbolContainers[columnIndex] = columnSymbols;
   }
   private updateComputedValues() {
     this.symbolHeight = this.height / 3;
+  }
+
+  private updateSymbolScaling(columnIndex: number): void {
+    if (!this.symbolContainers[columnIndex]) return;
+    this.symbolContainers[columnIndex].forEach((symbol, i) => {
+      const symbolY = i * this.symbolHeight;
+      symbol.setPosition(0, symbolY);
+      symbol.onResize(this.width / this._numColumns, this.symbolHeight);
+    });
   }
 }
