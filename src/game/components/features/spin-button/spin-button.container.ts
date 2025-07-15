@@ -5,7 +5,7 @@ export class SpinButtonContainer extends Phaser.GameObjects.Container {
   private debugRect: Phaser.GameObjects.Rectangle;
   private title: Phaser.GameObjects.Text;
   private titleFontSize: number;
-  private _enabled = false;
+  private _enabled = true;
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -31,7 +31,7 @@ export class SpinButtonContainer extends Phaser.GameObjects.Container {
     this.debugRect = scene.add.rectangle(0, 0, width, height, 0xffc000, 0.4);
     this.debugRect.setOrigin(0, 0);
     this.debugRect.setInteractive({ useHandCursor: true });
-    this.debugRect.on("pointerdown", () => console.log("pointerdown"));
+    this.debugRect.on("pointerdown", () => this.handlePointerdown());
     this.add([this.debugRect, this.title]);
   }
   onResize(width: number, height: number) {

@@ -1,5 +1,11 @@
 import { GameActions } from "../../../lib/game-actions";
 import { SymbolContainer } from "../";
+import { EventBus } from "../../utils/event-bus";
+import {
+  BOOK_OF_RA_SYMBOLS,
+  EventConstants,
+  ReelSymbol,
+} from "../../../constants";
 
 export class ReelsContainer extends Phaser.GameObjects.Container {
   private debugRect: Phaser.GameObjects.Rectangle;
@@ -11,6 +17,22 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
   private maskGraphicsList: Phaser.GameObjects.Graphics[] = [];
   private geometryMasks: Phaser.Display.Masks.GeometryMask[] = [];
   private symbolHeight: number;
+
+  private activeTweens: Phaser.Tweens.Tween[] = [];
+
+  isSpinning = false;
+  private _baseDuration: number = 800;
+  private _delayPerReel = 400;
+
+  // Result sprites for the final symbols after spin
+  private reels: ReelSymbol[][] = [
+    [3, 2, 9],
+    [7, 9, 5],
+    [2, 9, 2],
+    [7, 8, 9],
+    [3, 0, 1],
+  ];
+  resultSprites = new Map<string, SymbolContainer>();
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -20,12 +42,14 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
   ) {
     super(scene, x, y);
     this.setSize(width, height);
-
-    this.debugRect = scene.add.rectangle(0, 0, width, height, 0x0000ff, 0.4);
+    this.debugRect = scene.add.rectangle(0, 0, width, height, 0x1234ff, 0.4);
     this.debugRect.setOrigin(0, 0);
     this.add(this.debugRect);
     this.updateComputedValues();
     this.createColumns();
+    EventBus.on(EventConstants.spinButtonClick, () => this.startSpin());
+    this.onResize(width, height);
+    console.log("Parent container:", this.parentContainer);
   }
   onResize(width: number, height: number) {
     this.setSize(width, height);
@@ -56,6 +80,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
 
     const { x, y } = this.getContainerGlobalPosition();
     maskGraphics.setPosition(x, y);
+    console.log("Global Position for Mask:", x, y);
     const geometryMask = maskGraphics.createGeometryMask();
 
     this.columnContainers.forEach((columnContainer) => {
@@ -68,12 +93,11 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
   private getContainerGlobalPosition(): { x: number; y: number } {
     let x = this.x;
     let y = this.y;
-    let parent = this.parentContainer;
-
+    let parent: Phaser.GameObjects.Container = this.parentContainer;
     while (parent) {
       x += parent.x;
       y += parent.y;
-      parent = parent.parentContainer;
+      parent = parent?.parentContainer;
     }
 
     return { x, y };
@@ -105,12 +129,11 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     columnContainer: Phaser.GameObjects.Container,
     columnIndex: number,
   ) {
-    const symbolsForColumn = GameActions.randomReelStrip();
+    const symbolsForColumn = GameActions.randomReelStrip(30);
     const columnSymbols: SymbolContainer[] = [];
 
     symbolsForColumn.forEach((symbol, i) => {
-      const symbolY = i * this.symbolHeight;
-      console.log(symbolY);
+      const symbolY = -i * this.symbolHeight + this.symbolHeight * 2;
       const symbolContainer = new SymbolContainer(
         this.scene,
         0,
@@ -133,9 +156,88 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
   private updateSymbolScaling(columnIndex: number): void {
     if (!this.symbolContainers[columnIndex]) return;
     this.symbolContainers[columnIndex].forEach((symbol, i) => {
-      const symbolY = i * this.symbolHeight;
+      const symbolY = -i * this.symbolHeight + this.symbolHeight * 2;
       symbol.setPosition(0, symbolY);
       symbol.onResize(this.width / this._numColumns, this.symbolHeight);
     });
+  }
+
+  startSpin() {
+    if (this.isSpinning) return;
+    console.log("Spinning reels...");
+    let spinningSymbolsCount = 0;
+    this.isSpinning = true;
+    console.log(this.symbolContainers);
+    this.symbolContainers.forEach((columnSymbols, columnIndex) => {
+      const duration = this._baseDuration + columnIndex * this._delayPerReel;
+
+      const symbols = this.symbolContainers[columnIndex];
+      const totalSymbols = symbols.length;
+
+      const totalDistance = this.symbolHeight * (totalSymbols - 3);
+      columnSymbols.forEach((symbol, symbolIndex) => {
+        if (!(symbol instanceof SymbolContainer)) return;
+        spinningSymbolsCount++;
+
+        const tween = this.scene.tweens.add({
+          targets: symbol,
+          y: `+=${totalDistance}`,
+          ease: "Power3.easeIn",
+          duration,
+          onComplete: () => {
+            console.log(
+              `Symbol ${symbolIndex} in column ${columnIndex} completed spinning.`,
+            );
+            // if (symbolIndex === 0) this.handleReelSpinComplete(columnIndex);
+            symbol.setVisible(false);
+            this.setFinalSymbols(columnIndex);
+            spinningSymbolsCount--;
+            //
+            // const symbolBounceTweens = this.applyBounceTween(symbols);
+            // activeBounceTweens += symbolBounceTweens.length;
+            //
+            // symbolBounceTweens.forEach(bounceTween => {
+            //   bounceTween.setCallback('onComplete', () => {
+            //     activeBounceTweens--;
+            //     if (spinningSymbolsCount === 0 && activeBounceTweens === 0) {
+            //       this.handleSpinComplete();
+            //     }
+            //   });
+            // });
+          },
+        });
+
+        this.activeTweens.push(tween);
+        console.log(
+          "Added tween for symbol:",
+          symbolIndex,
+          "in column:",
+          columnIndex,
+          this.activeTweens,
+        );
+      });
+    });
+  }
+
+  private setFinalSymbols(columnIndex: number): void {
+    const symbols = this.symbolContainers[columnIndex];
+    const winningSymbols = this.reels[columnIndex] || [];
+
+    // Position and update the first 3 winning symbols (the visible ones)
+    for (let i = 0; i < winningSymbols?.length; i++) {
+      try {
+        const symbol = symbols[i];
+
+        symbol.y = i * this.symbolHeight;
+        symbol.updateText(BOOK_OF_RA_SYMBOLS[winningSymbols[i]]);
+        symbol.setVisible(true);
+
+        // push the Symbol to array, to play win animation on complete
+        this.resultSprites.set([columnIndex, i].join("-"), symbol);
+      } catch (error) {
+        console.log("Error setting final symbol:", error);
+        throw error;
+      }
+    }
   }
 }
