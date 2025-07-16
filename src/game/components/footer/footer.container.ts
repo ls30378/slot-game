@@ -12,7 +12,8 @@ export class FooterContainer extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.setSize(width, height);
     this.updateComputedValues();
-    this.debugRect = scene.add.rectangle(0, 0, width, height, 0xff69b4, 0.4);
+    this.debugRect = scene.add.rectangle(0, 0, width, height, 0xff69b4, 0);
+    this.debugRect.setStrokeStyle(2, 0xfffffff, 1);
     this.debugRect.setOrigin(0, 0);
     this.balanceText = new Phaser.GameObjects.Text(
       scene,

@@ -46,7 +46,8 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     super(scene, x, y);
     this.globalY = globalY;
     this.setSize(width, height);
-    this.debugRect = scene.add.rectangle(0, 0, width, height, 0x1234ff, 0.4);
+    this.debugRect = scene.add.rectangle(0, 0, width, height, 0x1234ff, 0);
+    this.debugRect.setStrokeStyle(2, 0xfffffff, 1);
     this.debugRect.setOrigin(0, 0);
     this.add(this.debugRect);
     this.updateComputedValues();
@@ -58,6 +59,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     this.setSize(width, height);
     this.debugRect.setSize(width, height);
     this.debugRect.setPosition(0, 0);
+
     this.updateColumnPositions();
     this.updateComputedValues();
   }

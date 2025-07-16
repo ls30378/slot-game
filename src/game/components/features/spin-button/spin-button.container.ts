@@ -28,8 +28,9 @@ export class SpinButtonContainer extends Phaser.GameObjects.Container {
       },
     ).setOrigin(0.5);
 
-    this.debugRect = scene.add.rectangle(0, 0, width, height, 0xffc000, 0.4);
+    this.debugRect = scene.add.rectangle(0, 0, width, height, 0xffc000, 0);
     this.debugRect.setOrigin(0, 0);
+    this.debugRect.setStrokeStyle(2, 0xfffffff, 1);
     this.debugRect.setInteractive({ useHandCursor: true });
     this.debugRect.on("pointerdown", () => this.handlePointerdown());
     this.add([this.debugRect, this.title]);

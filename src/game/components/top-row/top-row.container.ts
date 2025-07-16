@@ -25,7 +25,8 @@ export class TopRowContainer extends Phaser.GameObjects.Container {
       },
     ).setOrigin(0.5);
 
-    this.debugRect = scene.add.rectangle(0, 0, width, height, 0xff69b4, 0.4);
+    this.debugRect = scene.add.rectangle(0, 0, width, height, 0xff69b4, 0);
+    this.debugRect.setStrokeStyle(2, 0xfffffff, 1);
     this.debugRect.setOrigin(0, 0);
     this.add([this.title, this.debugRect]);
   }

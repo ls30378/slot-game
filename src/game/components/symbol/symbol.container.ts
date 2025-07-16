@@ -1,7 +1,7 @@
 import { BOOK_OF_RA_SYMBOLS, ReelSymbol } from "../../../constants";
 
 export class SymbolContainer extends Phaser.GameObjects.Container {
-  private debugRect: Phaser.GameObjects.Rectangle;
+  private winRect: Phaser.GameObjects.Rectangle;
   private title: Phaser.GameObjects.Text;
   private titleFontSize: number;
   private _enabled = false;
@@ -28,19 +28,19 @@ export class SymbolContainer extends Phaser.GameObjects.Container {
       },
     ).setOrigin(0.5);
 
-    this.debugRect = scene.add.rectangle(0, 0, width, height, 0xffc000, 0.4);
-    this.debugRect.setOrigin(0, 0);
-    this.debugRect.setInteractive({ useHandCursor: true });
-    this.debugRect.on("pointerdown", () => console.log("pointerdown"));
-    this.add([this.debugRect, this.title]);
+    this.winRect = scene.add.rectangle(0, 0, width, height, 0xffc000, 0);
+    this.winRect.setOrigin(0, 0);
+    this.winRect.setVisible(false);
+    this.add([this.winRect, this.title]);
   }
   onResize(width: number, height: number) {
     this.setSize(width, height);
     this.updateComputedValues();
     this.title.setFontSize(this.titleFontSize);
     this.title.setPosition(width / 2, height / 2);
-    this.debugRect.setSize(width, height);
-    this.debugRect.setPosition(0, 0);
+    this.winRect.setStrokeStyle(2, 0xfffffff, 1);
+    this.winRect.setSize(width, height);
+    this.winRect.setPosition(0, 0);
   }
   private updateComputedValues() {
     const computedFontSize = Math.floor(
@@ -59,5 +59,11 @@ export class SymbolContainer extends Phaser.GameObjects.Container {
   }
   updateText(text: string) {
     this.title.setText(text);
+  }
+  playWinAnimation() {
+    this.winRect.setVisible(true);
+  }
+  stopWinAnimation() {
+    this.winRect.setVisible(false);
   }
 }

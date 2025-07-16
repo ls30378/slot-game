@@ -8,6 +8,7 @@ export class IdleState extends FiniteState {
 
     const componentManager = ComponentManager.instance();
     componentManager.enableSpinButton();
+    componentManager.updateSpinButtonText("SPIN");
     EventBus.on(EventConstants.spinButtonClick, () =>
       this.stateMachine.transition("preSpin"),
     );

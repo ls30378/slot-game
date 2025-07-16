@@ -195,10 +195,7 @@ export class GameActions {
         const position = activePositions[reelIndex];
         const currentSymbol = screen[reelIndex][position];
 
-        if (winningSymbol === null) {
-          winningSymbol = currentSymbol;
-          consecutiveSymbols++;
-        } else if (currentSymbol === winningSymbol) {
+        if (currentSymbol === winningSymbol) {
           consecutiveSymbols++;
         } else {
           break;
@@ -251,5 +248,9 @@ export class GameActions {
     }
     this._reels.push(result);
     return result;
+  }
+  static saveWin(): number {
+    this._balance = this.balance + this._lastResults.totalWin;
+    return this.balance;
   }
 }

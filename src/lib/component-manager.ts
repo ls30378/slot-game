@@ -87,4 +87,14 @@ export class ComponentManager {
     }
     footerContainer.updateBalanceText(balance);
   }
+
+  updateSpinButtonText(txt: "SPIN" | "STOP" | "SAVE") {
+    const spinButton = this.getObject(ComponentConstants.SpinButton) as
+      | SpinButtonContainer
+      | undefined;
+    if (!spinButton) {
+      throw new Error("SpinButtonContainer not found");
+    }
+    spinButton.updateText(txt);
+  }
 }
