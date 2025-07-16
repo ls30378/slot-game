@@ -1,5 +1,14 @@
 import { Scene } from "phaser";
 import { FooterContainer, MainContainer, TopRowContainer } from "../components";
+import {
+  ConfirmRoundState,
+  FiniteStateMachine,
+  IdleState,
+  OutcommeEvaluationState,
+  PreSpinState,
+  SpinState,
+  WinAnimationState,
+} from "../../lib";
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
@@ -20,6 +29,14 @@ export class Game extends Scene {
 
   create() {
     this.camera = this.cameras.main;
+    new FiniteStateMachine("idle", {
+      idle: new IdleState(),
+      preSpin: new PreSpinState(),
+      spin: new SpinState(),
+      outcomeEvaluation: new OutcommeEvaluationState(),
+      winAnimation: new WinAnimationState(),
+      confirmRound: new ConfirmRoundState(),
+    });
     this.onResize();
     this.scale.on("resize", this.onResize, this);
   }
