@@ -1,11 +1,11 @@
-import { GameActions } from "../../../lib/game-actions";
+import { GameActions, SpinResult } from "../../../lib/game-actions";
 import { SymbolContainer } from "../";
-import { EventBus } from "../../utils/event-bus";
 import {
   BOOK_OF_RA_SYMBOLS,
   EventConstants,
   ReelSymbol,
 } from "../../../constants";
+import { EventBus } from "../../utils/event-bus";
 
 export class ReelsContainer extends Phaser.GameObjects.Container {
   private debugRect: Phaser.GameObjects.Rectangle;
@@ -27,11 +27,11 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
 
   // Result sprites for the final symbols after spin
   private reels: ReelSymbol[][] = [
-    [3, 2, 9],
-    [7, 9, 5],
-    [2, 9, 2],
-    [7, 8, 9],
-    [3, 0, 1],
+    // [3, 2, 9],
+    // [7, 9, 5],
+    // [2, 9, 2],
+    // [7, 8, 9],
+    // [3, 0, 1],
   ];
   resultSprites = new Map<string, SymbolContainer>();
   globalY: number;
@@ -51,9 +51,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     this.add(this.debugRect);
     this.updateComputedValues();
     this.createColumns();
-    EventBus.on(EventConstants.spinButtonClick, () => this.startSpin());
     this.onResize(width, height, globalY);
-    console.log("Parent container:", this.parentContainer);
   }
   onResize(width: number, height: number, globalY: number) {
     this.globalY = globalY;
@@ -189,7 +187,6 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     this.resetNewRound();
     let spinningSymbolsCount = 0;
     this.isSpinning = true;
-    console.log(this.symbolContainers);
     this.symbolContainers.forEach((columnSymbols, columnIndex) => {
       this.resetSymbolsForSpin(columnIndex);
       const duration = this._baseDuration + columnIndex * this._delayPerReel;
@@ -213,6 +210,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
             spinningSymbolsCount--;
             if (spinningSymbolsCount === 0) {
               this.isSpinning = false;
+              EventBus.emit(EventConstants.spinComplete);
             }
           },
         });
@@ -242,5 +240,8 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
         throw error;
       }
     }
+  }
+  handleSpinResult(spinResult: SpinResult) {
+    this.reels = spinResult.reels;
   }
 }

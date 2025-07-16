@@ -1,3 +1,5 @@
+import { ComponentConstants } from "../../../constants";
+import { ComponentManager } from "../../../lib";
 import { FeaturesContainer } from "../features/features.container";
 import { ReelsContainer } from "../reels/reels.container";
 
@@ -38,6 +40,10 @@ export class MainContainer extends Phaser.GameObjects.Container {
         this.y,
       );
       this.add(this.reelsContainer);
+      ComponentManager.instance().addObject(
+        ComponentConstants.ReelsContainer,
+        this.reelsContainer,
+      );
     } else {
       this.reelsContainer.onResize(this.width * 0.8, this.height, this.y);
     }

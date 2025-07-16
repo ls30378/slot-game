@@ -1,3 +1,5 @@
+import { ComponentConstants } from "../../../constants";
+import { ComponentManager } from "../../../lib";
 import { SpinButtonContainer } from "./spin-button/spin-button.container";
 
 export class FeaturesContainer extends Phaser.GameObjects.Container {
@@ -36,6 +38,10 @@ export class FeaturesContainer extends Phaser.GameObjects.Container {
         height,
       );
       this.add(this.spinButtonContainer);
+      ComponentManager.instance().addObject(
+        ComponentConstants.SpinButton,
+        this.spinButtonContainer,
+      );
     } else {
       this.spinButtonContainer.setPosition(0, yPosition);
       this.spinButtonContainer.onResize(this.width, height);

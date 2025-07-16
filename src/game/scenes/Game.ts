@@ -1,6 +1,7 @@
 import { Scene } from "phaser";
 import { FooterContainer, MainContainer, TopRowContainer } from "../components";
 import {
+  ComponentManager,
   ConfirmRoundState,
   FiniteStateMachine,
   IdleState,
@@ -9,6 +10,7 @@ import {
   SpinState,
   WinAnimationState,
 } from "../../lib";
+import { ComponentConstants } from "../../constants";
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
@@ -29,6 +31,7 @@ export class Game extends Scene {
 
   create() {
     this.camera = this.cameras.main;
+    this.onResize();
     new FiniteStateMachine("idle", {
       idle: new IdleState(),
       preSpin: new PreSpinState(),
@@ -37,7 +40,6 @@ export class Game extends Scene {
       winAnimation: new WinAnimationState(),
       confirmRound: new ConfirmRoundState(),
     });
-    this.onResize();
     this.scale.on("resize", this.onResize, this);
   }
   private updateComputedValues() {
@@ -64,6 +66,10 @@ export class Game extends Scene {
         this.topRowContainerHeight,
       );
       this.add.existing(this.topRowContainer);
+      ComponentManager.instance().addObject(
+        ComponentConstants.TopRowContainer,
+        this.topRowContainer,
+      );
     } else {
       this.topRowContainer.onResize(
         this.scale.width,
@@ -99,6 +105,10 @@ export class Game extends Scene {
         this.footerContainerHeight,
       );
       this.add.existing(this.footerContainer);
+      ComponentManager.instance().addObject(
+        ComponentConstants.FooterContainer,
+        this.footerContainer,
+      );
     } else {
       this.footerContainer.setPosition(0, footerYPosition);
       this.footerContainer.onResize(

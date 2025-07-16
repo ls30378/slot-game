@@ -16,7 +16,7 @@ export class TopRowContainer extends Phaser.GameObjects.Container {
       scene,
       width / 2,
       height / 2,
-      "Good Luck",
+      "Book Of Ra",
       {
         fontFamily: "Arial Black",
         fontSize: this.titleFontSize,
@@ -44,5 +44,8 @@ export class TopRowContainer extends Phaser.GameObjects.Container {
     );
     const baseFontSize = 39; // Base font size for maximum scaling
     this.titleFontSize = Math.min(baseFontSize, computedFontSize);
+  }
+  updateTitle(msg: string) {
+    this.title.setText(msg);
   }
 }
