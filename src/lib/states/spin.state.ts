@@ -12,7 +12,7 @@ export class SpinState extends FiniteState {
       this.stateMachine.transition("outcomeEvaluation"),
     );
     EventBus.on(EventConstants.spinButtonClick, () => {
-      console.log("Spin button clicked, stopping spin");
+      componentManager.stopSpin();
     });
   };
   public exit: () => void = () => {

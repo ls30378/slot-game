@@ -97,4 +97,14 @@ export class ComponentManager {
     }
     spinButton.updateText(txt);
   }
+
+  stopSpin() {
+    const reelsContainer = this.getObject(ComponentConstants.ReelsContainer) as
+      | ReelsContainer
+      | undefined;
+    if (!reelsContainer) {
+      throw new Error("ReelsContainer not found");
+    }
+    reelsContainer.stopSpin();
+  }
 }

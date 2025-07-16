@@ -246,4 +246,10 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
   handleSpinResult(spinResult: SpinResult) {
     this.reels = spinResult.reels;
   }
+
+  stopSpin() {
+    this.activeTweens.forEach((tween) => {
+      tween.complete();
+    });
+  }
 }
