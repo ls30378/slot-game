@@ -1,158 +1,298 @@
-# Phaser Vite TypeScript Template
+# Slot Game - Book of Ra
 
-This is a Phaser 3 project template that uses Vite for bundling. It supports hot-reloading for quick development workflow, includes TypeScript support and scripts to generate production-ready builds.
+A TypeScript slot game built with Phaser 3 and Vite, featuring a Book of Ra configuration with modern finite state machine architecture.
 
-**[This Template is also available as a JavaScript version.](https://github.com/phaserjs/template-vite)**
+## Development
 
-### Versions
+### Requirements
 
-This template has been updated for:
+- [Node.js](https://nodejs.org) for package management
+- Modern browser with ES2020+ support
 
-- [Phaser 3.90.0](https://github.com/phaserjs/phaser)
-- [Vite 6.3.1](https://github.com/vitejs/vite)
-- [TypeScript 5.7.2](https://github.com/microsoft/TypeScript)
+### Available Commands
 
-![screenshot](screenshot.png)
+| Command         | Description                                        |
+| --------------- | -------------------------------------------------- |
+| `npm install`   | Install project dependencies                       |
+| `npm run dev`   | Launch development server on http://localhost:8080 |
+| `npm run build` | Create production build in `dist/` folder          |
 
-## Requirements
+### Project Structure
 
-[Node.js](https://nodejs.org) is required to install dependencies and run scripts via `npm`.
-
-## Available Commands
-
-| Command | Description |
-|---------|-------------|
-| `npm install` | Install project dependencies |
-| `npm run dev` | Launch a development web server |
-| `npm run build` | Create a production build in the `dist` folder |
-| `npm run dev-nolog` | Launch a development web server without sending anonymous data (see "About log.js" below) |
-| `npm run build-nolog` | Create a production build in the `dist` folder without sending anonymous data (see "About log.js" below) |
-
-## Writing Code
-
-After cloning the repo, run `npm install` from your project directory. Then, you can start the local development server by running `npm run dev`.
-
-The local development server runs on `http://localhost:8080` by default. Please see the Vite documentation if you wish to change this, or add SSL support.
-
-Once the server is running you can edit any of the files in the `src` folder. Vite will automatically recompile your code and then reload the browser.
-
-## Template Project Structure
-
-We have provided a default project structure to get you started. This is as follows:
-
-## Template Project Structure
-
-We have provided a default project structure to get you started:
-
-| Path                         | Description                                                |
-|------------------------------|------------------------------------------------------------|
-| `index.html`                 | A basic HTML page to contain the game.                     |
-| `public/assets`              | Game sprites, audio, etc. Served directly at runtime.      |
-| `public/style.css`           | Global layout styles.                                      |
-| `src/main.ts`                | Application bootstrap.                                     |
-| `src/game`                   | Folder containing the game code.                           |
-| `src/game/main.ts`           | Game entry point: configures and starts the game.          |
-| `src/game/scenes`            | Folder with all Phaser game scenes.                        | 
-
-
-## Handling Assets
-
-Vite supports loading assets via JavaScript module `import` statements.
-
-This template provides support for both embedding assets and also loading them from a static folder. To embed an asset, you can import it at the top of the JavaScript file you are using it in:
-
-```js
-import logoImg from './assets/logo.png'
+```
+src/
+├── game/
+│   ├── scenes/          # Phaser scenes
+│   ├── components/      # UI components
+│   └── utils/           # Utilities and event bus
+├── lib/
+│   ├── states/          # Finite state machine states
+│   ├── finite-state-machine.ts
+│   ├── game-actions.ts  # Game logic
+│   └── component-manager.ts
+├── constants/           # Game constants and enums
+└── main.ts             # Application entry point
 ```
 
-To load static files such as audio files, videos, etc place them into the `public/assets` folder. Then you can use this path in the Loader calls within Phaser:
+## Features
 
-```js
-preload ()
-{
-    //  This is an example of an imported bundled image.
-    //  Remember to import it at the top of this file
-    this.load.image('logo', logoImg);
+- **Phaser 3.90.0** game engine with TypeScript support
+- **Finite State Machine** architecture for clean game flow management
+- **Responsive design** that adapts to different screen sizes
+- **Event-driven architecture** for decoupled component communication
+- **Component-based UI** with reusable containers
 
-    //  This is an example of loading a static image
-    //  from the public/assets folder:
-    this.load.image('background', 'assets/bg.png');
+## Architecture Overview
+
+This slot game leverages an architecture built around three core patterns:
+
+### 1. Finite State Machine
+
+The game uses a finite state machine to manage the slot game flow through distinct states:
+
+#### Game States
+
+- **`idle`** - Initial state where players can place bets and spin
+- **`preSpin`** - Validates bet, deducts balance, and prepares spin results (used timeout to simulate network latency)
+- **`spin`** - Handles reel spinning animations and user interactions
+- **`outcomeEvaluation`** - Evaluates spin results and determines next state
+- **`winAnimation`** - Plays winning line animations and handles win presentation
+- **`confirmRound`** - Finalizes the round (currently placeholder)
+
+Each state manages its own entry/exit logic and event listeners, ensuring clean transitions and proper cleanup.
+
+### State-Based Interactions
+
+The finite state machine strictly controls which user interactions are allowed in each state:
+
+#### `idle` State
+
+**Allowed Interactions:**
+
+- ✅ **Spin Button Click** - Initiates a new spin
+- ✅ **Stake Change** - Modify bet amount using footer controls
+- ✅ **Balance Updates** - View current balance
+
+**UI State:**
+
+- Spin button shows "SPIN" text and is enabled
+- Stake controls are interactive and enabled
+- All UI elements are responsive to user input
+
+#### `preSpin` State
+
+**Allowed Interactions:**
+
+- ❌ **No user interactions** - Brief transition state
+
+**UI State:**
+
+- Spin button temporarily disabled
+- Stake controls disabled
+- System validates bet and deducts balance
+
+#### `spin` State
+
+**Allowed Interactions:**
+
+- ✅ **Early Stop** - Click spin button to stop reels early
+- ❌ **Stake Change** - Disabled during spin
+- ❌ **Balance Modification** - Protected during spin
+
+**UI State:**
+
+- Spin button shows "STOP" text and remains enabled
+- Stake controls are disabled and grayed out
+- Reels are actively spinning with animations
+
+#### `outcomeEvaluation` State
+
+**Allowed Interactions:**
+
+- ❌ **No user interactions** - System processing
+
+**UI State:**
+
+- All controls temporarily disabled
+- System evaluates results and determines next state
+- Brief transition state for result processing
+
+#### `winAnimation` State
+
+**Allowed Interactions:**
+
+- ✅ **Skip Animation** - Click spin button to skip win animations
+- ❌ **Stake Change** - Disabled during win presentation
+- ❌ **New Spin** - Must complete current round first
+
+**UI State:**
+
+- Spin button shows "SAVE" text and is enabled
+- Stake controls remain disabled
+- Winning lines and symbols are highlighted
+- Win amount is displayed and animated
+
+#### `confirmRound` State
+
+**Allowed Interactions:**
+
+- ✅ **Confirm Win** - Finalizes the round and returns to idle
+- ❌ **Stake Change** - Disabled until round completion
+
+**UI State:**
+
+- Spin button enabled for round confirmation
+- Stake controls remain disabled
+- Win amount is added to balance
+
+### 2. Component Manager (Singleton)
+
+The `ComponentManager` acts as a centralized singleton for managing all Phaser components:
+
+```typescript
+// Direct component interaction
+ComponentManager.instance().enableSpinButton();
+ComponentManager.instance().updateTopRowMessage("Good Luck!");
+
+// Event-driven updates
+EventBus.emit(EventConstants.setLineId, lineId);
+```
+
+**Key responsibilities:**
+
+- Manages references to all game components
+- Provides a unified API for component interactions
+- Listens to game events and updates components accordingly
+- Ensures type-safe component access with error handling
+
+### 3. Game Actions (Static Class)
+
+The `GameActions` class handles all game logic and calculations:
+
+```typescript
+// Static methods for game operations
+const results = await GameActions.spin();
+const balance = GameActions.saveWin();
+const newStake = GameActions.changeStake();
+```
+
+**Key features:**
+
+- Static methods for game logic (spin, win calculation, balance management)
+- Paytable management for different symbols
+- Line-based winning calculation
+- Precise mathematical operations for monetary calculations
+- Reel strip generation and management
+
+## Main Game Components
+
+### Game Scene (`Game.ts`)
+
+The main Phaser scene that orchestrates the entire game:
+
+```typescript
+export class Game extends Scene {
+  private topRowContainer: TopRowContainer;
+  private mainContainer: MainContainer;
+  private footerContainer: FooterContainer;
 }
 ```
 
-When you issue the `npm run build` command, all static assets are automatically copied to the `dist/assets` folder.
+**Layout structure:**
 
-## Deploying to Production
+- **Top Row (10% height)** - Game title and line information
+- **Main Container (80% height)** - Reels and game features
+- **Footer (10% height)** - Balance and stake controls
 
-After you run the `npm run build` command, your code will be built into a single bundle and saved to the `dist` folder, along with any other assets your project imported, or stored in the public assets folder.
+### Component Hierarchy
 
-In order to deploy your game, you will need to upload *all* of the contents of the `dist` folder to a public facing web server.
+#### 1. TopRowContainer
 
-## Customizing the Template
+- Displays game title "Book of Ra"
+- Shows current winning line information
+- Responsive text scaling
+- Toggle visibility for line display
 
-### Vite
+#### 2. MainContainer
 
-If you want to customize your build, such as adding plugin (i.e. for loading CSS or fonts), you can modify the `vite/config.*.mjs` file for cross-project changes, or you can modify and/or create new configuration files and target them in specific npm tasks inside of `package.json`. Please see the [Vite documentation](https://vitejs.dev/) for more information.
+Split into two sections:
 
-## About log.js
+- **ReelsContainer (80% width)** - The main game area
+- **FeaturesContainer (20% width)** - Game controls
 
-If you inspect our node scripts you will see there is a file called `log.js`. This file makes a single silent API call to a domain called `gryzor.co`. This domain is owned by Phaser Studio Inc. The domain name is a homage to one of our favorite retro games.
+##### ReelsContainer
 
-We send the following 3 pieces of data to this API: The name of the template being used (vue, react, etc). If the build was 'dev' or 'prod' and finally the version of Phaser being used.
+- Manages 5 spinning reels with 3 visible symbols each
+- Handles spin animations with staggered timing
+- Implements masking for proper symbol visibility
+- Manages win animations and line highlighting
+- Supports early stop functionality
 
-At no point is any personal data collected or sent. We don't know about your project files, device, browser or anything else. Feel free to inspect the `log.js` file to confirm this.
+##### FeaturesContainer
 
-Why do we do this? Because being open source means we have no visible metrics about which of our templates are being used. We work hard to maintain a large and diverse set of templates for Phaser developers and this is our small anonymous way to determine if that work is actually paying off, or not. In short, it helps us ensure we're building the tools for you.
+- Contains the main spin button
+- Handles button state changes (SPIN/STOP/SAVE)
+- Responsive sizing and positioning
 
-However, if you don't want to send any data, you can use these commands instead:
+#### 3. FooterContainer
 
-Dev:
+- Displays current balance
+- Interactive stake selection
+- Enables/disables during game states
+- Updates balance after wins
 
-```bash
-npm run dev-nolog
+### Symbol Management
+
+Each symbol is managed by `SymbolContainer`:
+
+- Displays symbol text from the Book of Ra theme
+- Handles win animations with highlighting
+- Responsive scaling based on container size
+- State management for animation control
+
+## Interactive Controls Summary
+
+| Control          | idle    | preSpin | spin    | outcomeEvaluation | winAnimation | confirmRound |
+| ---------------- | ------- | ------- | ------- | ----------------- | ------------ | ------------ |
+| **Spin Button**  | ✅ SPIN | ❌      | ✅ STOP | ❌                | ✅ SAVE      | ✅ CONFIRM   |
+| **Stake Change** | ✅      | ❌      | ❌      | ❌                | ❌           | ❌           |
+| **Balance View** | ✅      | ✅      | ✅      | ✅                | ✅           | ✅           |
+
+## Event System
+
+The game uses Phaser's EventEmitter for decoupled communication:
+
+```typescript
+// Event constants for type safety
+export const EventConstants = {
+  spinButtonClick: "spinButton:click",
+  spinComplete: "spin:complete",
+  setLineId: "setLineId",
+  // ... more events
+};
 ```
 
-Build:
+**Event flow:**
 
-```bash
-npm run build-nolog
-```
+1. User interactions emit events
+2. State machines listen and react to events
+3. Component Manager updates UI based on events
+4. Game Actions handle business logic
 
-Or, to disable the log entirely, simply delete the file `log.js` and remove the call to it in the `scripts` section of `package.json`:
+## Game Flow
 
-Before:
+1. **Initialization**: Game starts in `idle` state
+2. **Bet Placement**: User can change stake and spin
+3. **Pre-Spin**: Validates bet, deducts balance, generates results
+4. **Spinning**: Reels spin with staggered animation timing
+5. **Outcome Evaluation**: Determines if there are wins
+6. **Win Animation**: Shows winning lines and symbols (if applicable)
+7. **Return to Idle**: Ready for next spin
 
-```json
-"scripts": {
-    "dev": "node log.js dev & dev-template-script",
-    "build": "node log.js build & build-template-script"
-},
-```
+## Technical Features
 
-After:
-
-```json
-"scripts": {
-    "dev": "dev-template-script",
-    "build": "build-template-script"
-},
-```
-
-Either of these will stop `log.js` from running. If you do decide to do this, please could you at least join our Discord and tell us which template you're using! Or send us a quick email. Either will be super-helpful, thank you.
-
-## Join the Phaser Community!
-
-We love to see what developers like you create with Phaser! It really motivates us to keep improving. So please join our community and show-off your work 😄
-
-**Visit:** The [Phaser website](https://phaser.io) and follow on [Phaser Twitter](https://twitter.com/phaser_)<br />
-**Play:** Some of the amazing games [#madewithphaser](https://twitter.com/search?q=%23madewithphaser&src=typed_query&f=live)<br />
-**Learn:** [API Docs](https://newdocs.phaser.io), [Support Forum](https://phaser.discourse.group/) and [StackOverflow](https://stackoverflow.com/questions/tagged/phaser-framework)<br />
-**Discord:** Join us on [Discord](https://discord.gg/phaser)<br />
-**Code:** 2000+ [Examples](https://labs.phaser.io)<br />
-**Read:** The [Phaser World](https://phaser.io/community/newsletter) Newsletter<br />
-
-Created by [Phaser Studio](mailto:support@phaser.io). Powered by coffee, anime, pixels and love.
-
-The Phaser logo and characters are &copy; 2011 - 2025 Phaser Studio Inc.
-
-All rights reserved.
+- **Responsive Design**: Adapts to different screen sizes
+- **Type Safety**: Full TypeScript support with strict configuration
+- **Modular Architecture**: Clean separation of concerns
+- **Event-Driven**: Decoupled component communication
+- **State Management**: Predictable game flow with finite state machines
