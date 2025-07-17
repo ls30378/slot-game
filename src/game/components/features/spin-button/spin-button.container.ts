@@ -14,7 +14,6 @@ export class SpinButtonContainer extends Phaser.GameObjects.Container {
     height: number,
   ) {
     super(scene, x, y);
-    this.setSize(width, height);
     this.title = new Phaser.GameObjects.Text(
       scene,
       width / 2,
@@ -34,6 +33,7 @@ export class SpinButtonContainer extends Phaser.GameObjects.Container {
     this.debugRect.setInteractive({ useHandCursor: true });
     this.debugRect.on("pointerdown", () => this.handlePointerdown());
     this.add([this.debugRect, this.title]);
+    this.onResize(width, height);
   }
   onResize(width: number, height: number) {
     this.setSize(width, height);
