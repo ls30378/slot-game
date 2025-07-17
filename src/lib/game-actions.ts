@@ -151,7 +151,8 @@ export class GameActions {
     return new Promise<SpinResult>((resolve, reject) => {
       setTimeout(() => {
         if (this.balance < this.bet) {
-          reject("Insufficient balance to spin");
+          console.log(`Balance ${this.balance} is less than bet ${this.bet}`);
+          return reject("Insufficient balance to spin");
         }
         this.balance -= this.bet;
         let screen = this._reels.map((reel: ReelSymbol[]) => {
