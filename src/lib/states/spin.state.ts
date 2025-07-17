@@ -8,9 +8,11 @@ export class SpinState extends FiniteState {
     componentManager.enableSpinButton();
     componentManager.startSpin();
     componentManager.updateSpinButtonText("STOP");
+
     EventBus.on(EventConstants.spinComplete, () =>
       this.stateMachine.transition("outcomeEvaluation"),
     );
+
     EventBus.on(EventConstants.spinButtonClick, () => {
       componentManager.stopSpin();
     });

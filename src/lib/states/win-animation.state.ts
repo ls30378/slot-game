@@ -7,10 +7,12 @@ export class WinAnimationState extends FiniteState {
     console.log("Entering Win Animation State");
     const componentManager = ComponentManager.instance();
     componentManager.updateSpinButtonText("SAVE");
+    componentManager.startWinAnimation();
     EventBus.on(EventConstants.spinButtonClick, () => {
       const balance = GameActions.saveWin();
       componentManager.updateFooterBalance(balance);
       componentManager.updateTopRowMessage("Place your bet!");
+      componentManager.stopWinAnimation();
       this.stateMachine.transition("idle");
     });
   };

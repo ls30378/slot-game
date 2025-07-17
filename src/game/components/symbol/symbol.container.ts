@@ -1,4 +1,9 @@
-import { BOOK_OF_RA_SYMBOLS, ReelSymbol } from "../../../constants";
+import {
+  BOOK_OF_RA_SYMBOLS,
+  EventConstants,
+  ReelSymbol,
+} from "../../../constants";
+import { EventBus } from "../../utils/event-bus";
 
 export class SymbolContainer extends Phaser.GameObjects.Container {
   private winRect: Phaser.GameObjects.Rectangle;
@@ -28,7 +33,7 @@ export class SymbolContainer extends Phaser.GameObjects.Container {
       },
     ).setOrigin(0.5);
 
-    this.winRect = scene.add.rectangle(0, 0, width, height, 0xffc000, 0);
+    this.winRect = scene.add.rectangle(0, 0, width, height, 0xffc000, 1);
     this.winRect.setOrigin(0, 0);
     this.winRect.setVisible(false);
     this.add([this.winRect, this.title]);
@@ -60,10 +65,18 @@ export class SymbolContainer extends Phaser.GameObjects.Container {
   updateText(text: string) {
     this.title.setText(text);
   }
-  playWinAnimation() {
-    this.winRect.setVisible(true);
+  async playWinAnimation() {
+    return new Promise<void>((resolve) => {
+      this.winRect.setVisible(true);
+      setTimeout(() => {
+        resolve();
+      }, 2000);
+    });
   }
   stopWinAnimation() {
     this.winRect.setVisible(false);
+  }
+  get symbol(): string {
+    return this.title.text;
   }
 }

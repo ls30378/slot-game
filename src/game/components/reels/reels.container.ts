@@ -1,4 +1,9 @@
-import { GameActions, SpinResult } from "../../../lib/game-actions";
+import {
+  GameActions,
+  lineSymbols,
+  type LineInfo,
+  type SpinResult,
+} from "../../../lib";
 import { SymbolContainer } from "../";
 import {
   BOOK_OF_RA_SYMBOLS,
@@ -26,15 +31,11 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
   private _delayPerReel = 400;
 
   // Result sprites for the final symbols after spin
-  private reels: ReelSymbol[][] = [
-    // [3, 2, 9],
-    // [7, 9, 5],
-    // [2, 9, 2],
-    // [7, 8, 9],
-    // [3, 0, 1],
-  ];
+  private reels: ReelSymbol[][] = [];
+  private winningLines: LineInfo[];
   resultSprites = new Map<string, SymbolContainer>();
   globalY: number;
+  private _shouldStopAnimations = false;
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -54,6 +55,10 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
     this.createColumns();
     this.onResize(width, height, globalY);
   }
+  set shouldStopAnimations(value: boolean) {
+    this._shouldStopAnimations = value;
+  }
+
   onResize(width: number, height: number, globalY: number) {
     this.globalY = globalY;
     this.setSize(width, height);
@@ -67,6 +72,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
   private resetNewRound() {
     this.activeTweens = [];
     this.resultSprites.clear();
+    this.shouldStopAnimations = false;
   }
 
   private createColumns() {
@@ -171,6 +177,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
       symbol.setPosition(0, symbolY);
       symbol.onResize(this.width / this._numColumns, this.symbolHeight);
     });
+    this.setFinalSymbols(columnIndex);
   }
 
   private resetSymbolsForSpin(columnIndex: number) {
@@ -185,6 +192,7 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
 
   startSpin() {
     if (this.isSpinning) return;
+
     console.log("Spinning reels...");
     this.resetNewRound();
     let spinningSymbolsCount = 0;
@@ -224,7 +232,8 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
 
   private setFinalSymbols(columnIndex: number): void {
     const symbols = this.symbolContainers[columnIndex];
-    const winningSymbols = this.reels[columnIndex].slice().reverse() || [];
+    if (!this.reels[columnIndex]) return;
+    const winningSymbols = this.reels[columnIndex] || [];
 
     // Position and update the first 3 winning symbols (the visible ones)
     for (let i = 0; i < winningSymbols?.length; i++) {
@@ -245,11 +254,101 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
   }
   handleSpinResult(spinResult: SpinResult) {
     this.reels = spinResult.reels;
+    this.winningLines = spinResult?.winningLines;
   }
 
   stopSpin() {
     this.activeTweens.forEach((tween) => {
       tween.complete();
     });
+  }
+
+  startWinAnimations = async (index: number) => {
+    // // Retrieve the positions of the symbols for the winning line at the current reelIndex
+    const lineElements: (number | undefined)[] =
+      this.getLineElementsToAnimate(index);
+    // If there are wins
+    if (lineElements.filter((le) => le !== undefined).length) {
+      // Retrieve only the elements that need to animate
+      let spliceIndex = 0;
+      const lineId = this.winningLines[index]?.lineId;
+      for (const [i, l] of lineElements.entries()) {
+        const currentSprite = this.resultSprites.get([i, l].join("-"));
+        if (!lineId) {
+          spliceIndex = this._numColumns;
+          break;
+        } else {
+          if (
+            currentSprite?.symbol !==
+            BOOK_OF_RA_SYMBOLS[this.winningLines[index]?.winningSymbol]
+          ) {
+            spliceIndex = i;
+            break;
+          } else spliceIndex = this._numColumns;
+        }
+      }
+
+      EventBus.emit(EventConstants.setLineId, lineId);
+      const elementsThatShouldAnimate = [...lineElements].splice(
+        0,
+        spliceIndex,
+      );
+      const stopElementsAnimations = () =>
+        elementsThatShouldAnimate.forEach((l, i) => {
+          const currentSprite = this.resultSprites.get([i, l].join("-"));
+          currentSprite?.stopWinAnimation();
+        });
+
+      let completedAnimations = 0;
+
+      // Iterate through each symbol in the winning line
+      elementsThatShouldAnimate.forEach(async (l, i) => {
+        // for (const [i, l] of elementsThatShouldAnimate.entries()) {
+        if (l === undefined) {
+          completedAnimations++;
+          // continue;
+          return;
+        }
+        const currentSprite = this.resultSprites.get([i, l].join("-"));
+        // Play the winning animation for the current sprite
+        await currentSprite?.playWinAnimation();
+        if (this._shouldStopAnimations) {
+          return;
+        }
+        completedAnimations++;
+
+        // Move to the next winning line once all animations for the current line are completed
+        if (completedAnimations === spliceIndex) {
+          const nextLine = this.winningLines?.[index + 1];
+          if (nextLine) {
+            stopElementsAnimations();
+
+            this.startWinAnimations(index + 1);
+          } else {
+            if (index) {
+              stopElementsAnimations();
+              this.startWinAnimations(0);
+            }
+            return;
+          }
+        }
+      });
+    }
+  };
+  stopWinAnimations() {
+    this.shouldStopAnimations = true;
+    this.resultSprites.forEach((sprite) => {
+      sprite.stopWinAnimation();
+    });
+  }
+  private getLineElementsToAnimate(index: number): (number | undefined)[] {
+    let lineElements: (number | undefined)[] = [];
+    // If there is line id it 's normal win line
+    if (this.winningLines[index]?.lineId)
+      lineElements = lineSymbols.get(
+        this.winningLines[index]?.lineId as number,
+      )!;
+
+    return lineElements;
   }
 }

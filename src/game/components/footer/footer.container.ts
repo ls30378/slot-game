@@ -1,7 +1,12 @@
+import { EventConstants } from "../../../constants";
+import { EventBus } from "../../utils/event-bus";
+
 export class FooterContainer extends Phaser.GameObjects.Container {
   private debugRect: Phaser.GameObjects.Rectangle;
   private titleFontSize: number;
   private balanceText: Phaser.GameObjects.Text;
+  private stakeText: Phaser.GameObjects.Text;
+  private _stakeEnabled = true;
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -27,7 +32,22 @@ export class FooterContainer extends Phaser.GameObjects.Container {
         color: "#ffffff",
       },
     ).setOrigin(0, 0.5);
-    this.add([this.debugRect, this.balanceText]);
+    this.stakeText = new Phaser.GameObjects.Text(
+      scene,
+      width,
+      height / 2,
+      "Stake: 10",
+      {
+        fontFamily: "Arial Black",
+        fontSize: this.titleFontSize,
+        fontStyle: "600",
+        color: "#ffffff",
+      },
+    ).setOrigin(1, 0.5);
+
+    this.stakeText.setInteractive({ useHandCursor: true });
+    this.stakeText.on("pointerdown", this.handleStakeClick);
+    this.add([this.stakeText, this.debugRect, this.balanceText]);
   }
 
   private updateComputedValues() {
@@ -42,10 +62,26 @@ export class FooterContainer extends Phaser.GameObjects.Container {
     this.setSize(width, height);
     this.balanceText.setFontSize(this.titleFontSize);
     this.balanceText.setPosition(0, height / 2);
+    this.stakeText.setFontSize(this.titleFontSize);
+    this.stakeText.setPosition(width, height / 2);
     this.debugRect.setSize(width, height);
     this.debugRect.setPosition(0, 0);
   }
   updateBalanceText(balance: number) {
     this.balanceText.setText(`Balance: ${balance}`);
+  }
+  private handleStakeClick() {
+    EventBus.emit(EventConstants.stakeButtonClick);
+  }
+  changeStakeStatus(status: boolean) {
+    this._stakeEnabled = status;
+    if (status) {
+      this.stakeText.setAlpha(1);
+    } else {
+      this.stakeText.setAlpha(0.5);
+    }
+  }
+  changeStakeText(stake: number) {
+    this.stakeText.setText(`Stake: ${stake}`);
   }
 }

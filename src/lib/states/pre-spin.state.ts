@@ -5,6 +5,7 @@ export class PreSpinState extends FiniteState {
     console.log("Entering PreSpinState");
     const componentManager = ComponentManager.instance();
     componentManager.disableSpinButton();
+    componentManager.changeStakeStatus(false);
     try {
       componentManager.updateTopRowMessage("Good Luck!");
       const results = await GameActions.spin();

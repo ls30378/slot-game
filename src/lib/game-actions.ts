@@ -13,7 +13,7 @@ export type SpinResult = {
   winningLines: LineInfo[];
   totalWin: number;
 };
-const lineSymbols = new Map<number, number[]>();
+export const lineSymbols = new Map<number, number[]>();
 lineSymbols.set(1, [1, 1, 1, 1, 1]);
 lineSymbols.set(2, [0, 0, 0, 0, 0]);
 lineSymbols.set(3, [2, 2, 2, 2, 2]);
@@ -27,7 +27,12 @@ lineSymbols.set(10, [2, 1, 1, 1, 0]);
 
 export class GameActions {
   private static _balance = 1000;
-  private static _bet = 500;
+  private static _bet = 10;
+  private static _STAKE_OPTIONS = [
+    0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.75, 1, 1.5, 2, 2.5, 4, 5, 7.5,
+    10, 15, 20, 25, 50,
+  ] as const;
+
   private static _lines = 10;
   private static _reels: ReelSymbol[][] = [];
   private static _lastResults: SpinResult;
@@ -149,7 +154,7 @@ export class GameActions {
           reject("Insufficient balance to spin");
         }
         this.balance -= this.bet;
-        const screen = this._reels.map((reel: ReelSymbol[]) => {
+        let screen = this._reels.map((reel: ReelSymbol[]) => {
           const pos = Math.trunc(Math.random() * reel.length);
           return [
             reel[pos],
@@ -157,10 +162,18 @@ export class GameActions {
             reel[(pos + 2) % reel.length],
           ];
         });
+        screen = [
+          [8, 5, 7],
+          [8, 7, 3],
+          [5, 2, 5],
+          [0, 8, 1],
+          [6, 7, 4],
+        ];
 
         const lines = this.calculateWin(screen);
 
         const totalWin = this.preciseAdd(lines.map((l) => l.lineWin));
+
         const results = {
           reels: screen,
           winningLines: lines,
@@ -252,5 +265,17 @@ export class GameActions {
   static saveWin(): number {
     this._balance = this.balance + this._lastResults.totalWin;
     return this.balance;
+  }
+
+  static changeStake(): number {
+    const currentIndex = this._STAKE_OPTIONS.findIndex(
+      (stake) => stake === this.bet,
+    );
+    const nextIndex =
+      currentIndex === this._STAKE_OPTIONS.length - 1
+        ? 0
+        : Math.min(currentIndex + 1, this._STAKE_OPTIONS.length - 1);
+    this._bet = this._STAKE_OPTIONS[nextIndex];
+    return this.bet;
   }
 }
