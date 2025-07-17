@@ -162,13 +162,6 @@ export class GameActions {
             reel[(pos + 2) % reel.length],
           ];
         });
-        screen = [
-          [8, 5, 7],
-          [8, 7, 3],
-          [5, 2, 5],
-          [0, 8, 1],
-          [6, 7, 4],
-        ];
 
         const lines = this.calculateWin(screen);
 
