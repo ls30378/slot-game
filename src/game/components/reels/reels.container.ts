@@ -289,12 +289,12 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
       }
 
       EventBus.emit(EventConstants.setLineId, lineId);
-      const elementsThatShouldAnimate = [...lineElements].splice(
-        0,
-        spliceIndex,
-      );
+      // const elementsThatShouldAnimate = [...lineElements].splice(
+      //   0,
+      //   spliceIndex,
+      // );
       const stopElementsAnimations = () =>
-        elementsThatShouldAnimate.forEach((l, i) => {
+        lineElements.forEach((l, i) => {
           const currentSprite = this.resultSprites.get([i, l].join("-"));
           currentSprite?.stopWinAnimation();
         });
@@ -302,16 +302,14 @@ export class ReelsContainer extends Phaser.GameObjects.Container {
       let completedAnimations = 0;
 
       // Iterate through each symbol in the winning line
-      elementsThatShouldAnimate.forEach(async (l, i) => {
-        // for (const [i, l] of elementsThatShouldAnimate.entries()) {
+      lineElements.forEach(async (l, i) => {
         if (l === undefined) {
           completedAnimations++;
-          // continue;
           return;
         }
         const currentSprite = this.resultSprites.get([i, l].join("-"));
         // Play the winning animation for the current sprite
-        await currentSprite?.playWinAnimation();
+        await currentSprite?.playWinAnimation(i < spliceIndex);
         if (this._shouldStopAnimations) {
           return;
         }

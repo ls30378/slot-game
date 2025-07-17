@@ -65,9 +65,10 @@ export class SymbolContainer extends Phaser.GameObjects.Container {
   updateText(text: string) {
     this.title.setText(text);
   }
-  async playWinAnimation() {
+  async playWinAnimation(fill?: boolean) {
     return new Promise<void>((resolve) => {
       this.winRect.setVisible(true);
+      this.winRect.setFillStyle(0xffc000, fill ? 1 : 0);
       setTimeout(() => {
         resolve();
       }, 2000);
